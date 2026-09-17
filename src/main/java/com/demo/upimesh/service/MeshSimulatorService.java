@@ -27,16 +27,20 @@ public class MeshSimulatorService {
     private final Map<String, VirtualDevice> devices = new ConcurrentHashMap<>();
 
     public MeshSimulatorService() {
-        // Default scenario: 4 offline phones in a basement, 1 phone outside with 4G
+        // Default scenario: 2 offline phones in a basement, 3 phones with 4G —
+        // enough bridges that a single gossip round puts the SAME packet on
+        // multiple internet-connected phones, so /api/mesh/flush's parallel
+        // upload actually exercises the duplicate-storm idempotency race live,
+        // not just in IdempotencyConcurrencyTest.
         seedDefaultDevices();
     }
 
     private void seedDefaultDevices() {
-        devices.put("phone-alice",   new VirtualDevice("phone-alice",   false));
-        devices.put("phone-stranger1", new VirtualDevice("phone-stranger1", false));
-        devices.put("phone-stranger2", new VirtualDevice("phone-stranger2", false));
-        devices.put("phone-stranger3", new VirtualDevice("phone-stranger3", false));
-        devices.put("phone-bridge",  new VirtualDevice("phone-bridge",  true));
+        devices.put("phone-alice",        new VirtualDevice("phone-alice",        false));
+        devices.put("phone-stranger1",    new VirtualDevice("phone-stranger1",    false));
+        devices.put("phone-bridge-cafe",  new VirtualDevice("phone-bridge-cafe",  true));
+        devices.put("phone-bridge-transit", new VirtualDevice("phone-bridge-transit", true));
+        devices.put("phone-bridge-home",  new VirtualDevice("phone-bridge-home",  true));
     }
 
     public Collection<VirtualDevice> getDevices() {

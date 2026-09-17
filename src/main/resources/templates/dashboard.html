@@ -2,242 +2,822 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>UPI Offline Mesh — Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UPI Offline Mesh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #000000;
+            --surface: #0a0a0e;
+            --surface-2: #101016;
+            --surface-3: #16161e;
+            --line: rgba(255, 255, 255, 0.09);
+            --line-strong: rgba(255, 255, 255, 0.18);
+            --text: #ececf1;
+            --text-dim: #9ba1ac;
+            --text-faint: #6b7280;
+            --accent: #635bff;
+            --accent-soft: rgba(99, 91, 255, 0.16);
+            --cyan: #00d4ff;
+            --green: #3ecf8e;
+            --green-soft: rgba(62, 207, 142, 0.14);
+            --amber: #f5a623;
+            --amber-soft: rgba(245, 166, 35, 0.14);
+            --red: #ff5b5b;
+            --red-soft: rgba(255, 91, 91, 0.14);
+            --radius: 10px;
+            --radius-sm: 6px;
+            --shadow: 0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.45);
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --mono: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Monaco', monospace;
+        }
+
         * { box-sizing: border-box; }
+
+        html { -webkit-text-size-adjust: 100%; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            margin: 0; padding: 24px; background: #0d1117; color: #e6edf3;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            font-feature-settings: 'cv02', 'cv03', 'cv04';
         }
-        h1 { margin-top: 0; color: #f0f6fc; }
-        h2 { color: #58a6ff; border-bottom: 1px solid #30363d; padding-bottom: 4px; margin-top: 32px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .grid { display: grid; gap: 16px; }
-        .grid-2 { grid-template-columns: 1fr 1fr; }
-        .grid-3 { grid-template-columns: repeat(3, 1fr); }
-        .card {
-            background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px;
+
+        a { color: inherit; }
+
+        .shell { max-width: 1160px; margin: 0 auto; padding: 0 24px 72px; }
+
+        /* ---------- top bar ---------- */
+
+        .topbar {
+            position: sticky; top: 0; z-index: 20;
+            background: rgba(0, 0, 0, 0.82);
+            backdrop-filter: saturate(160%) blur(12px);
+            border-bottom: 1px solid var(--line);
         }
-        .device {
-            border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px;
-            background: #0d1117;
+        .topbar-inner {
+            max-width: 1160px; margin: 0 auto; padding: 14px 24px;
+            display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
         }
-        .device.bridge { border-color: #2ea043; background: #052e16; }
-        .device.offline { opacity: 0.85; }
-        .badge {
-            display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px;
-            font-weight: 600; margin-left: 8px;
+        .mark {
+            width: 28px; height: 28px; border-radius: 8px; flex: none;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--cyan) 100%);
+            display: flex; align-items: center; justify-content: center;
         }
-        .badge-online { background: #2ea043; color: white; }
-        .badge-offline { background: #6e7681; color: white; }
-        .packet-id {
-            font-family: 'Consolas', 'Monaco', monospace; font-size: 11px;
-            background: #21262d; padding: 2px 6px; border-radius: 3px; margin: 2px;
-            display: inline-block;
+        .mark svg { width: 15px; height: 15px; display: block; }
+        .wordmark { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+        .topbar .spacer { flex: 1; }
+
+        .keychip {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-family: var(--mono); font-size: 11.5px; color: var(--text-dim);
+            background: var(--surface-2); border: 1px solid var(--line);
+            padding: 5px 10px; border-radius: 999px;
         }
-        button {
-            background: #238636; color: white; border: none; padding: 8px 16px;
-            border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;
-            margin: 4px;
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex: none; }
+
+        /* ---------- page head ---------- */
+
+        .pagehead { padding: 44px 0 28px; }
+        .pagehead h1 {
+            margin: 0 0 8px; font-size: 30px; font-weight: 600;
+            letter-spacing: -0.025em; line-height: 1.2;
         }
-        button:hover { background: #2ea043; }
-        button.danger { background: #da3633; }
-        button.danger:hover { background: #f85149; }
-        button.secondary { background: #1f6feb; }
-        button.secondary:hover { background: #388bfd; }
+        .pagehead p { margin: 0; color: var(--text-dim); max-width: 62ch; }
+
+        /* ---------- stats ---------- */
+
+        .stats {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            border: 1px solid var(--line); border-radius: var(--radius);
+            background: var(--surface); overflow: hidden; margin-bottom: 28px;
+        }
+        .stat { padding: 16px 18px; border-right: 1px solid var(--line); }
+        .stat:last-child { border-right: none; }
+        .stat .label { color: var(--text-faint); font-size: 12px; margin-bottom: 6px; }
+        .stat .value {
+            font-size: 22px; font-weight: 600; letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+        }
+        .stat .value small { font-size: 13px; font-weight: 500; color: var(--text-faint); margin-left: 4px; }
+
+        /* ---------- panels ---------- */
+
+        .panel {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: var(--radius); box-shadow: var(--shadow);
+            margin-bottom: 20px; overflow: hidden;
+        }
+        .panel-head {
+            padding: 14px 18px; border-bottom: 1px solid var(--line);
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+        .panel-head h2 {
+            margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+        }
+        .panel-head .hint { color: var(--text-faint); font-size: 12.5px; }
+        .panel-head .spacer { flex: 1; }
+        .panel-body { padding: 18px; }
+        .panel-body.flush { padding: 0; }
+
+        .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+
+        /* ---------- form ---------- */
+
+        .fields {
+            display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px; margin-bottom: 16px;
+        }
+        .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+        .field label { font-size: 12.5px; color: var(--text-dim); font-weight: 500; }
+
         input, select {
-            background: #0d1117; color: #e6edf3; border: 1px solid #30363d;
-            border-radius: 4px; padding: 6px 10px; font-size: 14px; margin: 4px;
+            width: 100%; font-family: inherit; font-size: 14px; color: var(--text);
+            background: var(--surface-2); border: 1px solid var(--line-strong);
+            border-radius: var(--radius-sm); padding: 8px 10px;
+            transition: border-color .12s ease, box-shadow .12s ease;
+            appearance: none;
         }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #30363d; }
-        th { color: #8b949e; font-weight: 600; font-size: 12px; text-transform: uppercase; }
-        .status-SETTLED { color: #56d364; font-weight: 600; }
-        .status-REJECTED { color: #f85149; font-weight: 600; }
-        .status-DUPLICATE_DROPPED { color: #d29922; font-weight: 600; }
-        .status-INVALID { color: #f85149; font-weight: 600; }
+        select {
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%239ba1ac'%3E%3Cpath d='M4.5 6.5 8 10l3.5-3.5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 8px center;
+            background-size: 16px; padding-right: 28px;
+        }
+        input:hover, select:hover { border-color: rgba(255,255,255,.28); }
+        input:focus, select:focus {
+            outline: none; border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+        .amount-wrap { position: relative; }
+        .amount-wrap .rupee {
+            position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+            color: var(--text-faint); pointer-events: none; font-variant-numeric: tabular-nums;
+        }
+        .amount-wrap input { padding-left: 24px; font-variant-numeric: tabular-nums; }
+
+        /* ---------- buttons ---------- */
+
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+        button {
+            font-family: inherit; font-size: 13.5px; font-weight: 500; color: var(--text);
+            background: var(--surface-3); border: 1px solid var(--line-strong);
+            border-radius: var(--radius-sm); padding: 8px 14px; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 7px;
+            transition: background .12s ease, border-color .12s ease, opacity .12s ease;
+        }
+        button:hover:not(:disabled) { background: #1d1d26; border-color: rgba(255,255,255,.28); }
+        button:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+        button:disabled { opacity: .5; cursor: not-allowed; }
+
+        button.primary {
+            background: var(--accent); border-color: var(--accent); color: #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,.4);
+        }
+        button.primary:hover:not(:disabled) { background: #7069ff; border-color: #7069ff; }
+
+        button.quiet { background: transparent; }
+        button.quiet:hover:not(:disabled) { background: var(--surface-2); }
+
+        button.danger { background: transparent; border-color: rgba(255,91,91,.34); color: var(--red); }
+        button.danger:hover:not(:disabled) { background: var(--red-soft); border-color: rgba(255,91,91,.5); }
+
+        .spin {
+            width: 13px; height: 13px; border-radius: 50%; flex: none;
+            border: 2px solid rgba(255,255,255,.28); border-top-color: currentColor;
+            animation: spin .7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ---------- devices ---------- */
+
+        .device {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+            padding: 13px 18px; border-bottom: 1px solid var(--line);
+        }
+        .device:last-child { border-bottom: none; }
+        .device .name { font-weight: 500; font-size: 13.5px; }
+        .device .count { color: var(--text-faint); font-size: 12.5px; }
+        .device .spacer { flex: 1; }
+        .device.bridge { background: linear-gradient(90deg, rgba(62,207,142,.07), transparent 60%); }
+
+        .pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 11.5px; font-weight: 500; padding: 3px 9px; border-radius: 999px;
+            border: 1px solid transparent; white-space: nowrap;
+        }
+        .pill-online { background: var(--green-soft); color: var(--green); border-color: rgba(62,207,142,.28); }
+        .pill-offline { background: rgba(255,255,255,.05); color: var(--text-faint); border-color: var(--line); }
+
+        .packets { display: flex; flex-wrap: wrap; gap: 5px; width: 100%; }
+        .packet-id {
+            font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+            background: var(--surface-2); border: 1px solid var(--line);
+            padding: 2px 7px; border-radius: 4px;
+        }
+
+        /* ---------- tables ---------- */
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 11px 18px; border-bottom: 1px solid var(--line); }
+        thead th {
+            color: var(--text-faint); font-weight: 500; font-size: 12px;
+            background: var(--surface-2); border-bottom: 1px solid var(--line);
+            position: sticky; top: 0;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr { transition: background .1s ease; }
+        tbody tr:hover { background: rgba(255,255,255,.025); }
+        .num { font-variant-numeric: tabular-nums; }
+        .muted { color: var(--text-faint); }
+        .mono { font-family: var(--mono); font-size: 12px; }
+        .table-scroll { overflow-x: auto; }
+
+        .status-SETTLED { background: var(--green-soft); color: var(--green); border-color: rgba(62,207,142,.28); }
+        .status-REJECTED { background: var(--red-soft); color: var(--red); border-color: rgba(255,91,91,.28); }
+        .status-DUPLICATE_DROPPED { background: var(--amber-soft); color: var(--amber); border-color: rgba(245,166,35,.28); }
+        .status-INVALID { background: var(--red-soft); color: var(--red); border-color: rgba(255,91,91,.28); }
+
+        .empty { padding: 34px 18px; text-align: center; color: var(--text-faint); font-size: 13px; }
+
+        /* ---------- duplicate storm result ---------- */
+
+        .storm-summary {
+            display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+            margin-bottom: 12px; font-size: 13.5px;
+        }
+        .storm-summary strong { font-size: 15px; }
+        .storm-rows { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
+        .storm-row {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+            padding: 10px 14px; border-bottom: 1px solid var(--line);
+            background: var(--surface-2);
+        }
+        .storm-row:last-child { border-bottom: none; }
+        .storm-row.won { background: linear-gradient(90deg, rgba(62,207,142,.09), var(--surface-2) 70%); }
+        .storm-row .who { font-weight: 500; font-size: 13px; }
+        .storm-row .spacer { flex: 1; }
+        .storm-row .why { color: var(--text-faint); font-size: 12px; }
+        .storm-placeholder { color: var(--text-faint); font-size: 13px; }
+
+        /* ---------- log ---------- */
+
         #log {
-            background: #010409; color: #7ee787; padding: 12px; border-radius: 6px;
-            font-family: 'Consolas', 'Monaco', monospace; font-size: 12px;
-            max-height: 220px; overflow-y: auto; white-space: pre-wrap;
-            border: 1px solid #30363d;
+            font-family: var(--mono); font-size: 12px; line-height: 1.75;
+            color: var(--text-dim); background: #050507;
+            max-height: 260px; overflow-y: auto; padding: 14px 18px;
+            white-space: pre-wrap; word-break: break-word;
         }
-        .controls { background: #161b22; padding: 16px; border-radius: 8px;
-                    border: 1px solid #30363d; margin-bottom: 16px; }
-        .step-num {
-            display: inline-block; background: #58a6ff; color: white;
-            border-radius: 50%; width: 24px; height: 24px; text-align: center;
-            line-height: 24px; font-weight: 600; margin-right: 8px;
+        #log .t { color: var(--text-faint); }
+        #log .ok { color: var(--green); }
+        #log .warn { color: var(--amber); }
+        #log .err { color: var(--red); }
+        #log .ln { display: block; }
+
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-thumb { background: #22222c; border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
+        ::-webkit-scrollbar-thumb:hover { background: #2e2e3a; background-clip: padding-box; }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        @media (max-width: 900px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .stat:nth-child(2) { border-right: none; }
+            .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--line); }
+            .cols { grid-template-columns: 1fr; }
+            .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .pagehead { padding: 30px 0 22px; }
+            .pagehead h1 { font-size: 24px; }
         }
-        .balance { font-family: 'Consolas', monospace; color: #56d364; font-weight: 600; }
-        .small { font-size: 12px; color: #8b949e; }
+        @media (max-width: 520px) {
+            .shell, .topbar-inner { padding-left: 16px; padding-right: 16px; }
+            .fields { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: 1fr; }
+            .stat { border-right: none; border-bottom: 1px solid var(--line); }
+            .stat:last-child { border-bottom: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>📡 UPI Offline Mesh — Live Demo</h1>
-    <p class="small">
-        Send money in a basement with zero internet. Encrypted packets gossip from phone to phone
-        until one with 4G reaches the backend.
-    </p>
 
-    <div class="controls">
-        <h3 style="margin-top:0">🎬 Demo Flow</h3>
-
-        <div>
-            <span class="step-num">1</span><strong>Compose payment</strong> (simulates sender phone)
-            <br>
-            <select id="senderVpa">
-                <option>alice@demo</option>
-                <option>bob@demo</option>
-                <option>carol@demo</option>
-            </select>
-            →
-            <select id="receiverVpa">
-                <option>bob@demo</option>
-                <option>carol@demo</option>
-                <option>alice@demo</option>
-                <option>dave@demo</option>
-            </select>
-            ₹<input type="number" id="amount" value="500" style="width: 100px">
-            PIN <input type="text" id="pin" value="1234" style="width: 80px" maxlength="4">
-            <button onclick="sendPacket()">📤 Inject into Mesh</button>
-        </div>
-
-        <div style="margin-top: 16px">
-            <span class="step-num">2</span><strong>Gossip</strong> — packets hop device-to-device
-            <button class="secondary" onclick="gossip()">🔄 Run Gossip Round</button>
-        </div>
-
-        <div style="margin-top: 16px">
-            <span class="step-num">3</span><strong>Bridge node walks outside, hits 4G</strong>
-            <button class="secondary" onclick="flushBridges()">📡 Bridges Upload to Backend</button>
-            <span class="small">(parallel — exercises idempotency)</span>
-        </div>
-
-        <div style="margin-top: 16px">
-            <button class="danger" onclick="resetMesh()">🗑 Reset Mesh + Cache</button>
-        </div>
-    </div>
-
-    <div class="grid grid-2">
-        <div class="card">
-            <h2>📱 Mesh Devices</h2>
-            <div id="devices"></div>
-        </div>
-
-        <div class="card">
-            <h2>🏦 Account Balances</h2>
-            <table id="accounts-table">
-                <thead><tr><th>VPA</th><th>Holder</th><th>Balance</th></tr></thead>
-                <tbody></tbody>
-            </table>
-            <p class="small" id="cacheInfo"></p>
-        </div>
-    </div>
-
-    <div class="card" style="margin-top: 16px">
-        <h2>📜 Transaction Ledger</h2>
-        <table id="tx-table">
-            <thead><tr>
-                <th>ID</th><th>From</th><th>To</th><th>Amount</th>
-                <th>Status</th><th>Bridge</th><th>Hops</th><th>Settled</th>
-            </tr></thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-    <div class="card" style="margin-top: 16px">
-        <h2>🪵 Activity Log</h2>
-        <div id="log"></div>
+<div class="topbar">
+    <div class="topbar-inner">
+        <span class="mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
+                <path d="M12 19v.01"></path>
+                <path d="M8.5 15.5a5 5 0 0 1 7 0"></path>
+                <path d="M5 12a10 10 0 0 1 14 0"></path>
+            </svg>
+        </span>
+        <span class="wordmark">UPI Offline Mesh</span>
+        <span class="spacer"></span>
+        <span class="keychip"><span class="dot"></span><span id="keyFingerprint">connecting</span></span>
     </div>
 </div>
 
-<script>
-function log(msg) {
-    const el = document.getElementById('log');
-    el.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n' + el.textContent;
-}
+<div class="shell">
 
-async function refresh() {
-    // Mesh state
-    const m = await fetch('/api/mesh/state').then(r => r.json());
-    const devicesDiv = document.getElementById('devices');
-    devicesDiv.innerHTML = m.devices.map(d => `
-        <div class="device ${d.hasInternet ? 'bridge' : 'offline'}">
-            <strong>${d.deviceId}</strong>
-            <span class="badge ${d.hasInternet ? 'badge-online' : 'badge-offline'}">
-                ${d.hasInternet ? '🌐 4G' : '🚫 OFFLINE'}
-            </span>
-            <span class="small">holding ${d.packetCount} packet(s)</span>
-            <div>${d.packetIds.map(id => `<span class="packet-id">${id}</span>`).join('')}</div>
+    <div class="pagehead">
+        <h1>Send money without a network</h1>
+        <p>A payment is encrypted on the sender's phone, passed between nearby devices over Bluetooth, and
+            uploaded by whichever phone reaches the internet first. The backend decrypts it, drops duplicates,
+            and settles it once.</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="label">Settled volume</div>
+            <div class="value" id="statVolume">₹0.00</div>
         </div>
-    `).join('');
-    document.getElementById('cacheInfo').textContent =
-        `Idempotency cache size: ${m.idempotencyCacheSize}`;
+        <div class="stat">
+            <div class="label">Settled payments</div>
+            <div class="value" id="statSettled">0<small id="statRejected"></small></div>
+        </div>
+        <div class="stat">
+            <div class="label">Packets in the mesh</div>
+            <div class="value" id="statPackets">0</div>
+        </div>
+        <div class="stat">
+            <div class="label">Hashes remembered</div>
+            <div class="value" id="statCache">0</div>
+        </div>
+    </div>
 
-    // Accounts
-    const accs = await fetch('/api/accounts').then(r => r.json());
-    document.querySelector('#accounts-table tbody').innerHTML = accs.map(a => `
-        <tr><td>${a.vpa}</td><td>${a.holderName}</td>
-            <td class="balance">₹${parseFloat(a.balance).toFixed(2)}</td></tr>
-    `).join('');
+    <div class="panel">
+        <div class="panel-head">
+            <h2>New payment</h2>
+            <span class="hint">Runs the sender phone's encryption on the server, then drops the packet at phone-alice.</span>
+        </div>
+        <div class="panel-body">
+            <div class="fields">
+                <div class="field">
+                    <label for="senderVpa">From</label>
+                    <select id="senderVpa">
+                        <option>alice@demo</option>
+                        <option>bob@demo</option>
+                        <option>carol@demo</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="receiverVpa">To</label>
+                    <select id="receiverVpa">
+                        <option>bob@demo</option>
+                        <option>carol@demo</option>
+                        <option>alice@demo</option>
+                        <option>dave@demo</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="amount">Amount</label>
+                    <div class="amount-wrap">
+                        <span class="rupee">₹</span>
+                        <input type="number" id="amount" value="500" min="1" step="1">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="pin">UPI PIN</label>
+                    <input type="password" id="pin" value="1234" maxlength="4" inputmode="numeric" autocomplete="off">
+                </div>
+            </div>
 
-    // Transactions
-    const txs = await fetch('/api/transactions').then(r => r.json());
-    document.querySelector('#tx-table tbody').innerHTML = txs.map(t => `
-        <tr>
-            <td>${t.id}</td><td>${t.senderVpa}</td><td>${t.receiverVpa}</td>
-            <td class="balance">₹${parseFloat(t.amount).toFixed(2)}</td>
-            <td class="status-${t.status}">${t.status}</td>
-            <td>${t.bridgeNodeId}</td><td>${t.hopCount}</td>
-            <td class="small">${new Date(t.settledAt).toLocaleTimeString()}</td>
-        </tr>
-    `).join('');
-}
+            <div class="actions">
+                <button class="primary" id="btnSend" type="button">Send payment</button>
+                <button class="quiet" id="btnGossip" type="button">Pass between phones</button>
+                <button class="quiet" id="btnFlush" type="button">Upload from phones online</button>
+                <span class="spacer" style="flex:1"></span>
+                <button class="danger" id="btnReset" type="button">Clear everything</button>
+            </div>
+        </div>
+    </div>
 
-async function sendPacket() {
-    const body = {
-        senderVpa: document.getElementById('senderVpa').value,
-        receiverVpa: document.getElementById('receiverVpa').value,
-        amount: parseFloat(document.getElementById('amount').value),
-        pin: document.getElementById('pin').value,
-        ttl: 5,
-        startDevice: 'phone-alice'
-    };
-    const r = await fetch('/api/demo/send', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(body)
-    }).then(r => r.json());
-    log(`📤 Packet ${r.packetId.substring(0,8)} encrypted & injected at ${r.injectedAt} (TTL ${r.ttl})`);
-    log(`   ciphertext (truncated): ${r.ciphertextPreview}`);
-    refresh();
-}
+    <div class="panel" id="stormPanel">
+        <div class="panel-head">
+            <h2>Duplicate protection</h2>
+            <span class="hint">Same payment reaches the backend from several phones at the exact same moment — watch only one go through.</span>
+        </div>
+        <div class="panel-body">
+            <div class="actions" style="margin-bottom: 14px;">
+                <button class="primary" id="btnStorm" type="button">Run duplicate storm</button>
+                <span class="hint" id="stormHint">Sends a fresh payment, spreads it to every phone, then has every online phone upload it at once.</span>
+            </div>
+            <div id="stormResult"><div class="storm-placeholder">Click "Run duplicate storm" to see it live.</div></div>
+        </div>
+    </div>
 
-async function gossip() {
-    const r = await fetch('/api/mesh/gossip', {method: 'POST'}).then(r => r.json());
-    log(`🔄 Gossip: ${r.transfers} transfer(s) — ${JSON.stringify(r.deviceCounts)}`);
-    refresh();
-}
+    <div class="cols">
+        <div class="panel">
+            <div class="panel-head">
+                <h2>Phones nearby</h2>
+                <span class="spacer"></span>
+                <span class="hint" id="deviceSummary"></span>
+            </div>
+            <div class="panel-body flush" id="devices"></div>
+        </div>
 
-async function flushBridges() {
-    const r = await fetch('/api/mesh/flush', {method: 'POST'}).then(r => r.json());
-    log(`📡 ${r.uploadsAttempted} bridge upload(s):`);
-    r.results.forEach(res => {
-        log(`   ${res.bridgeNode} packet ${res.packetId} → ${res.outcome}` +
-            (res.reason ? ` (${res.reason})` : ''));
+        <div class="panel">
+            <div class="panel-head">
+                <h2>Balances</h2>
+            </div>
+            <div class="panel-body flush table-scroll">
+                <table id="accounts-table">
+                    <thead>
+                    <tr><th>Account</th><th>Name</th><th style="text-align:right">Balance</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-head">
+            <h2>Payments</h2>
+            <span class="hint">Most recent 20</span>
+        </div>
+        <div class="panel-body flush table-scroll">
+            <table id="tx-table">
+                <thead>
+                <tr>
+                    <th>ID</th><th>From</th><th>To</th>
+                    <th style="text-align:right">Amount</th>
+                    <th>Status</th><th>Delivered by</th>
+                    <th style="text-align:right">Hops</th><th>Settled</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-head">
+            <h2>Activity</h2>
+            <span class="spacer"></span>
+            <button class="quiet" id="btnClearLog" type="button">Clear</button>
+        </div>
+        <div class="panel-body flush">
+            <div id="log"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var logEl = document.getElementById('log');
+
+    function esc(v) {
+        return String(v === null || v === undefined ? '' : v)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function money(v) {
+        var n = parseFloat(v);
+        if (isNaN(n)) n = 0;
+        return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function log(msg, kind) {
+        var time = new Date().toLocaleTimeString();
+        var line = document.createElement('span');
+        line.className = 'ln';
+        line.innerHTML = '<span class="t">' + esc(time) + '</span>  ' +
+            '<span class="' + (kind || '') + '">' + esc(msg) + '</span>';
+        logEl.insertBefore(line, logEl.firstChild);
+        while (logEl.childNodes.length > 200) logEl.removeChild(logEl.lastChild);
+    }
+
+    function busy(btn, on) {
+        if (on) {
+            btn.dataset.label = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spin"></span>' + esc(btn.dataset.label);
+        } else {
+            btn.disabled = false;
+            btn.textContent = btn.dataset.label || btn.textContent;
+        }
+    }
+
+    function jsonFetch(url, options) {
+        return fetch(url, options).then(function (r) {
+            if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+            return r.json();
+        });
+    }
+
+    // ---------------------------------------------------------------- render
+
+    function renderDevices(state) {
+        var wrap = document.getElementById('devices');
+        var devices = state.devices || [];
+        var inMesh = 0, bridges = 0;
+
+        var html = devices.map(function (d) {
+            inMesh += d.packetCount;
+            if (d.hasInternet) bridges++;
+            var ids = (d.packetIds || []).map(function (id) {
+                return '<span class="packet-id">' + esc(id) + '</span>';
+            }).join('');
+            return '' +
+                '<div class="device' + (d.hasInternet ? ' bridge' : '') + '">' +
+                    '<span class="name">' + esc(d.deviceId) + '</span>' +
+                    '<span class="pill ' + (d.hasInternet ? 'pill-online' : 'pill-offline') + '">' +
+                        (d.hasInternet ? 'Online' : 'No signal') + '</span>' +
+                    '<span class="spacer"></span>' +
+                    '<span class="count">' + d.packetCount + (d.packetCount === 1 ? ' packet' : ' packets') + '</span>' +
+                    (ids ? '<div class="packets">' + ids + '</div>' : '') +
+                '</div>';
+        }).join('');
+
+        wrap.innerHTML = html || '<div class="empty">No phones in range.</div>';
+
+        document.getElementById('deviceSummary').textContent =
+            devices.length + ' nearby · ' + bridges + ' online';
+        document.getElementById('statPackets').textContent = inMesh;
+        document.getElementById('statCache').textContent = state.idempotencyCacheSize;
+    }
+
+    function renderAccounts(accounts) {
+        var body = document.querySelector('#accounts-table tbody');
+        if (!accounts.length) {
+            body.innerHTML = '<tr><td colspan="3" class="empty">No accounts yet.</td></tr>';
+            return;
+        }
+        body.innerHTML = accounts.map(function (a) {
+            return '<tr>' +
+                '<td class="mono">' + esc(a.vpa) + '</td>' +
+                '<td>' + esc(a.holderName) + '</td>' +
+                '<td class="num" style="text-align:right">' + money(a.balance) + '</td>' +
+            '</tr>';
+        }).join('');
+    }
+
+    function renderTransactions(txs) {
+        var body = document.querySelector('#tx-table tbody');
+        if (!txs.length) {
+            body.innerHTML = '<tr><td colspan="8" class="empty">No payments yet. Send one to get started.</td></tr>';
+            document.getElementById('statVolume').textContent = '₹0.00';
+            document.getElementById('statSettled').textContent = '0';
+            return;
+        }
+
+        var volume = 0, settled = 0, rejected = 0;
+        txs.forEach(function (t) {
+            if (t.status === 'SETTLED') { settled++; volume += parseFloat(t.amount) || 0; }
+            else { rejected++; }
+        });
+
+        document.getElementById('statVolume').textContent = money(volume);
+        var settledEl = document.getElementById('statSettled');
+        settledEl.textContent = settled;
+        var rej = document.createElement('small');
+        rej.id = 'statRejected';
+        rej.textContent = rejected ? rejected + ' rejected' : '';
+        settledEl.appendChild(rej);
+
+        body.innerHTML = txs.map(function (t) {
+            var when = t.settledAt ? new Date(t.settledAt).toLocaleTimeString() : '—';
+            return '<tr>' +
+                '<td class="mono muted">' + esc(t.id) + '</td>' +
+                '<td class="mono">' + esc(t.senderVpa) + '</td>' +
+                '<td class="mono">' + esc(t.receiverVpa) + '</td>' +
+                '<td class="num" style="text-align:right">' + money(t.amount) + '</td>' +
+                '<td><span class="pill status-' + esc(t.status) + '">' + esc(t.status) + '</span></td>' +
+                '<td class="mono">' + esc(t.bridgeNodeId) + '</td>' +
+                '<td class="num" style="text-align:right">' + esc(t.hopCount) + '</td>' +
+                '<td class="muted">' + esc(when) + '</td>' +
+            '</tr>';
+        }).join('');
+    }
+
+    var refreshing = false;
+
+    function refresh(quiet) {
+        if (refreshing) return Promise.resolve();
+        refreshing = true;
+        return Promise.all([
+            jsonFetch('/api/mesh/state'),
+            jsonFetch('/api/accounts'),
+            jsonFetch('/api/transactions')
+        ]).then(function (r) {
+            renderDevices(r[0]);
+            renderAccounts(r[1]);
+            renderTransactions(r[2]);
+        }).catch(function (e) {
+            if (!quiet) log('Could not reach the backend: ' + e.message, 'err');
+        }).then(function () {
+            refreshing = false;
+        });
+    }
+
+    // --------------------------------------------------------------- actions
+
+    document.getElementById('btnSend').addEventListener('click', function () {
+        var btn = this;
+        var amount = parseFloat(document.getElementById('amount').value);
+        var sender = document.getElementById('senderVpa').value;
+        var receiver = document.getElementById('receiverVpa').value;
+
+        if (!amount || amount <= 0) { log('Enter an amount greater than zero.', 'warn'); return; }
+        if (sender === receiver) { log('Pick two different accounts.', 'warn'); return; }
+
+        busy(btn, true);
+        jsonFetch('/api/demo/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                senderVpa: sender,
+                receiverVpa: receiver,
+                amount: amount,
+                pin: document.getElementById('pin').value,
+                ttl: 5,
+                startDevice: 'phone-alice'
+            })
+        }).then(function (r) {
+            log('Encrypted ' + money(amount) + ' and handed packet ' +
+                r.packetId.substring(0, 8) + ' to ' + r.injectedAt + ' (ttl ' + r.ttl + ')', 'ok');
+            log('  ' + r.ciphertextPreview);
+            return refresh();
+        }).catch(function (e) {
+            log('Send failed: ' + e.message, 'err');
+        }).then(function () { busy(btn, false); });
     });
-    refresh();
-}
 
-async function resetMesh() {
-    await fetch('/api/mesh/reset', {method: 'POST'});
-    log('🗑 mesh + idempotency cache cleared');
-    refresh();
-}
+    document.getElementById('btnGossip').addEventListener('click', function () {
+        var btn = this;
+        busy(btn, true);
+        jsonFetch('/api/mesh/gossip', { method: 'POST' }).then(function (r) {
+            if (r.transfers === 0) {
+                log('No new hops — every phone already has a copy.', 'warn');
+            } else {
+                log(r.transfers + ' packet hand-off' + (r.transfers === 1 ? '' : 's') + ' between phones', 'ok');
+            }
+            return refresh();
+        }).catch(function (e) {
+            log('Gossip failed: ' + e.message, 'err');
+        }).then(function () { busy(btn, false); });
+    });
 
-refresh();
-setInterval(refresh, 3000);
+    document.getElementById('btnFlush').addEventListener('click', function () {
+        var btn = this;
+        busy(btn, true);
+        jsonFetch('/api/mesh/flush', { method: 'POST' }).then(function (r) {
+            if (!r.uploadsAttempted) {
+                log('Nothing to upload — no online phone is holding a packet.', 'warn');
+            } else {
+                log(r.uploadsAttempted + ' upload' + (r.uploadsAttempted === 1 ? '' : 's') + ' sent to the backend', 'ok');
+                (r.results || []).forEach(function (res) {
+                    var kind = res.outcome === 'SETTLED' ? 'ok'
+                             : res.outcome === 'DUPLICATE_DROPPED' ? 'warn' : 'err';
+                    log('  ' + res.bridgeNode + ' · packet ' + res.packetId + ' → ' + res.outcome +
+                        (res.reason ? ' (' + res.reason + ')' : ''), kind);
+                });
+            }
+            return refresh();
+        }).catch(function (e) {
+            log('Upload failed: ' + e.message, 'err');
+        }).then(function () { busy(btn, false); });
+    });
+
+    document.getElementById('btnReset').addEventListener('click', function () {
+        var btn = this;
+        busy(btn, true);
+        fetch('/api/mesh/reset', { method: 'POST' }).then(function () {
+            log('Mesh emptied and remembered hashes cleared. Balances keep their history.', 'ok');
+            return refresh();
+        }).catch(function (e) {
+            log('Reset failed: ' + e.message, 'err');
+        }).then(function () { busy(btn, false); });
+    });
+
+    // -------------------------------------------------------- duplicate storm
+
+    function renderStorm(sendResp, flushResp, amount, sender, receiver) {
+        var box = document.getElementById('stormResult');
+        var shortId = sendResp.packetId.substring(0, 8);
+        var mine = (flushResp.results || []).filter(function (r) {
+            return r.packetId === shortId;
+        });
+
+        if (!mine.length) {
+            box.innerHTML = '<div class="storm-placeholder">' +
+                'The payment did not reach any online phone this round — try again.</div>';
+            return;
+        }
+
+        var settled = mine.filter(function (r) { return r.outcome === 'SETTLED'; });
+        var dropped = mine.filter(function (r) { return r.outcome === 'DUPLICATE_DROPPED'; });
+
+        var summary = mine.length === 1
+            ? 'Only one phone was online, so there was nothing to race — ' +
+              'run it again once more phones are carrying the packet.'
+            : '<strong>' + mine.length + ' phones</strong> uploaded the exact same payment ' +
+              'at the same moment. <strong>' + settled.length + '</strong> settled it' +
+              (dropped.length ? ', <strong>' + dropped.length + '</strong> were dropped as duplicates.' : '.');
+
+        var rows = mine.map(function (r) {
+            var won = r.outcome === 'SETTLED';
+            return '<div class="storm-row' + (won ? ' won' : '') + '">' +
+                '<span class="who mono">' + esc(r.bridgeNode) + '</span>' +
+                '<span class="pill status-' + esc(r.outcome) + '">' +
+                    (won ? 'Settled the payment' : 'Rejected — already paid') +
+                '</span>' +
+                '<span class="spacer"></span>' +
+                '<span class="why mono">packet ' + esc(r.packetId) + '</span>' +
+            '</div>';
+        }).join('');
+
+        box.innerHTML =
+            '<div class="storm-summary">' + esc(sender) + ' → ' + esc(receiver) + ', ' + money(amount) +
+                '<span style="flex:1"></span><span class="hint">' + summary + '</span></div>' +
+            '<div class="storm-rows">' + rows + '</div>';
+    }
+
+    document.getElementById('btnStorm').addEventListener('click', function () {
+        var btn = this;
+        var hint = document.getElementById('stormHint');
+        var sender = document.getElementById('senderVpa').value;
+        var receiver = document.getElementById('receiverVpa').value;
+        var amount = parseFloat(document.getElementById('amount').value);
+
+        if (!amount || amount <= 0) { log('Enter an amount greater than zero.', 'warn'); return; }
+        if (sender === receiver) { log('Pick two different accounts.', 'warn'); return; }
+
+        busy(btn, true);
+        hint.textContent = 'Clearing the mesh…';
+
+        fetch('/api/mesh/reset', { method: 'POST' })
+            .then(function () {
+                hint.textContent = 'Encrypting the payment…';
+                return jsonFetch('/api/demo/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        senderVpa: sender, receiverVpa: receiver, amount: amount,
+                        pin: document.getElementById('pin').value,
+                        ttl: 5, startDevice: 'phone-alice'
+                    })
+                });
+            })
+            .then(function (sendResp) {
+                hint.textContent = 'Spreading it to every phone in range…';
+                return jsonFetch('/api/mesh/gossip', { method: 'POST' }).then(function () {
+                    hint.textContent = 'Every online phone is uploading it at once…';
+                    return jsonFetch('/api/mesh/flush', { method: 'POST' }).then(function (flushResp) {
+                        return { sendResp: sendResp, flushResp: flushResp };
+                    });
+                });
+            })
+            .then(function (r) {
+                renderStorm(r.sendResp, r.flushResp, amount, sender, receiver);
+                var settledCount = (r.flushResp.results || []).filter(function (x) {
+                    return x.outcome === 'SETTLED';
+                }).length;
+                var droppedCount = (r.flushResp.results || []).filter(function (x) {
+                    return x.outcome === 'DUPLICATE_DROPPED';
+                }).length;
+                log('Duplicate storm: ' + r.flushResp.uploadsAttempted + ' phone(s) uploaded the same payment — ' +
+                    settledCount + ' settled, ' + droppedCount + ' rejected as duplicates', 'ok');
+                hint.textContent = 'Sends a fresh payment, spreads it to every phone, then has every online phone upload it at once.';
+                return refresh();
+            })
+            .catch(function (e) {
+                log('Duplicate storm failed: ' + e.message, 'err');
+                hint.textContent = 'Something went wrong — see the activity log below.';
+            })
+            .then(function () { busy(btn, false); });
+    });
+
+    document.getElementById('btnClearLog').addEventListener('click', function () {
+        logEl.innerHTML = '';
+    });
+
+    // ----------------------------------------------------------------- start
+
+    jsonFetch('/api/server-key').then(function (k) {
+        document.getElementById('keyFingerprint').textContent =
+            'key ' + k.publicKey.substring(k.publicKey.length - 16);
+    }).catch(function () {
+        var chip = document.getElementById('keyFingerprint');
+        chip.textContent = 'backend unreachable';
+        chip.parentNode.querySelector('.dot').style.background = 'var(--red)';
+    });
+
+    refresh();
+    setInterval(function () { refresh(true); }, 3000);
+    log('Ready.', 'ok');
+})();
 </script>
 </body>
 </html>
