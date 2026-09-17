@@ -53,7 +53,6 @@
 
         .shell { max-width: 1160px; margin: 0 auto; padding: 0 24px 72px; }
 
-        /* ---------- top bar ---------- */
 
         .topbar {
             position: sticky; top: 0; z-index: 20;
@@ -82,7 +81,6 @@
         }
         .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex: none; }
 
-        /* ---------- page head ---------- */
 
         .pagehead { padding: 44px 0 28px; }
         .pagehead h1 {
@@ -91,7 +89,6 @@
         }
         .pagehead p { margin: 0; color: var(--text-dim); max-width: 62ch; }
 
-        /* ---------- stats ---------- */
 
         .stats {
             display: grid; grid-template-columns: repeat(4, 1fr);
@@ -107,7 +104,6 @@
         }
         .stat .value small { font-size: 13px; font-weight: 500; color: var(--text-faint); margin-left: 4px; }
 
-        /* ---------- panels ---------- */
 
         .panel {
             background: var(--surface); border: 1px solid var(--line);
@@ -128,7 +124,6 @@
 
         .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 
-        /* ---------- form ---------- */
 
         .fields {
             display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -161,7 +156,6 @@
         }
         .amount-wrap input { padding-left: 24px; font-variant-numeric: tabular-nums; }
 
-        /* ---------- buttons ---------- */
 
         .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
@@ -195,7 +189,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ---------- devices ---------- */
+
 
         .device {
             display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -222,7 +216,6 @@
             padding: 2px 7px; border-radius: 4px;
         }
 
-        /* ---------- tables ---------- */
 
         table { width: 100%; border-collapse: collapse; }
         th, td { text-align: left; padding: 11px 18px; border-bottom: 1px solid var(--line); }
@@ -246,7 +239,6 @@
 
         .empty { padding: 34px 18px; text-align: center; color: var(--text-faint); font-size: 13px; }
 
-        /* ---------- duplicate storm result ---------- */
 
         .storm-summary {
             display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
@@ -266,7 +258,6 @@
         .storm-row .why { color: var(--text-faint); font-size: 12px; }
         .storm-placeholder { color: var(--text-faint); font-size: 13px; }
 
-        /* ---------- log ---------- */
 
         #log {
             font-family: var(--mono); font-size: 12px; line-height: 1.75;
@@ -516,7 +507,6 @@
         });
     }
 
-    // ---------------------------------------------------------------- render
 
     function renderDevices(state) {
         var wrap = document.getElementById('devices');
@@ -621,7 +611,6 @@
         });
     }
 
-    // --------------------------------------------------------------- actions
 
     document.getElementById('btnSend').addEventListener('click', function () {
         var btn = this;
@@ -701,7 +690,6 @@
         }).then(function () { busy(btn, false); });
     });
 
-    // -------------------------------------------------------- duplicate storm
 
     function renderStorm(sendResp, flushResp, amount, sender, receiver) {
         var box = document.getElementById('stormResult');
@@ -803,7 +791,6 @@
         logEl.innerHTML = '';
     });
 
-    // ----------------------------------------------------------------- start
 
     jsonFetch('/api/server-key').then(function (k) {
         document.getElementById('keyFingerprint').textContent =
