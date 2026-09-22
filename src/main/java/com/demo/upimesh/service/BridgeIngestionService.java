@@ -4,6 +4,7 @@ import com.demo.upimesh.crypto.HybridCryptoService;
 import com.demo.upimesh.model.MeshPacket;
 import com.demo.upimesh.model.PaymentInstruction;
 import com.demo.upimesh.model.Transaction;
+import com.demo.upimesh.model.TransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ public class BridgeIngestionService {
     @Autowired private HybridCryptoService crypto;
     @Autowired private IdempotencyService idempotency;
     @Autowired private SettlementService settlement;
+    @Autowired private TransactionRepository transactions;
 
     @Value("${upi.mesh.packet-max-age-seconds:86400}")
     private long maxAgeSeconds;
@@ -44,6 +46,17 @@ public class BridgeIngestionService {
             if (!idempotency.claim(packetHash)) {
                 log.info("DUPLICATE packet {} from bridge {} — dropped",
                         packetHash.substring(0, 12) + "...", bridgeNodeId);
+                return IngestResult.duplicate(packetHash);
+            }
+
+            // ---- Defense-in-depth: DB fallback ----
+            // The in-memory cache can be cleared (a demo reset, an instance
+            // restart) without erasing settlement history. The database is
+            // the source of truth, so re-check it even after winning the
+            // in-memory claim.
+            if (transactions.existsByPacketHash(packetHash)) {
+                log.info("DUPLICATE packet {} caught by DB fallback (cache had no record) — dropped",
+                        packetHash.substring(0, 12) + "...");
                 return IngestResult.duplicate(packetHash);
             }
 

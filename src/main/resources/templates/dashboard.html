@@ -486,6 +486,21 @@
         </div>
     </div>
 
+    <div class="panel" id="attackPanel">
+        <div class="panel-head">
+            <h2>Try to break it</h2>
+            <span class="hint">Real attacks against the real backend — the same pipeline that handles production traffic has to catch these live.</span>
+        </div>
+        <div class="panel-body">
+            <div class="actions" style="margin-bottom: 14px;">
+                <button class="danger" id="btnAttackReplay" type="button">Replay an old payment</button>
+                <button class="danger" id="btnAttackTamper" type="button">Tamper with a payment</button>
+                <span class="hint" id="attackHint">Takes the most recently settled payment and attacks the backend with it directly — nothing here is faked.</span>
+            </div>
+            <div id="attackResult"><div class="storm-placeholder">Send a payment above, then try to break it.</div></div>
+        </div>
+    </div>
+
     <div class="cols">
         <div class="panel">
             <div class="panel-head">
@@ -886,6 +901,67 @@
             .catch(function (e) {
                 log('Duplicate storm failed: ' + e.message, 'err');
                 hint.textContent = 'Something went wrong — see the activity log below.';
+            })
+            .then(function () { busy(btn, false); });
+    });
+
+    // -------------------------------------------------------- try to break it
+
+    function renderAttackResult(label, r) {
+        var box = document.getElementById('attackResult');
+
+        if (!r.possible) {
+            box.innerHTML = '<div class="storm-placeholder">' + esc(r.message) + '</div>';
+            return;
+        }
+
+        var target = esc(r.sender) + ' → ' + esc(r.receiver) + ', ' + money(r.amount) +
+            ' (payment #' + esc(r.targetTransactionId) + ')';
+        var verdict = r.blocked
+            ? '<strong>Blocked.</strong> ' + esc(r.explanation)
+            : '<strong>Not blocked.</strong> ' + esc(r.explanation);
+
+        box.innerHTML =
+            '<div class="storm-summary">' + esc(label) + ' on ' + target +
+                '<span style="flex:1"></span><span class="hint">' + verdict + '</span></div>' +
+            '<div class="storm-rows">' +
+                '<div class="storm-row' + (r.blocked ? ' won' : '') + '">' +
+                    '<span class="who mono">attacker</span>' +
+                    '<span class="pill status-' + esc(r.outcome) + '">' + esc(r.outcome) +
+                        (r.reason ? ' (' + esc(r.reason) + ')' : '') + '</span>' +
+                    '<span class="spacer"></span>' +
+                    '<span class="why mono">payment #' + esc(r.targetTransactionId) + '</span>' +
+                '</div>' +
+            '</div>';
+
+        log((r.blocked ? label + ' blocked — ' : label + ' NOT BLOCKED — ') + r.outcome +
+            (r.reason ? ' (' + r.reason + ')' : ''), r.blocked ? 'ok' : 'err');
+    }
+
+    document.getElementById('btnAttackReplay').addEventListener('click', function () {
+        var btn = this;
+        busy(btn, true);
+        jsonFetch('/api/attack/replay', { method: 'POST' })
+            .then(function (r) {
+                renderAttackResult('Replay attack', r);
+                return refresh();
+            })
+            .catch(function (e) {
+                log('Replay attack request failed: ' + e.message, 'err');
+            })
+            .then(function () { busy(btn, false); });
+    });
+
+    document.getElementById('btnAttackTamper').addEventListener('click', function () {
+        var btn = this;
+        busy(btn, true);
+        jsonFetch('/api/attack/tamper', { method: 'POST' })
+            .then(function (r) {
+                renderAttackResult('Tamper attack', r);
+                return refresh();
+            })
+            .catch(function (e) {
+                log('Tamper attack request failed: ' + e.message, 'err');
             })
             .then(function () { busy(btn, false); });
     });

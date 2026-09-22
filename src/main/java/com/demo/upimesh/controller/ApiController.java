@@ -206,4 +206,113 @@ public class ApiController {
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    // ---------------------------------------------------------- try to break it
+
+    /**
+     * "Try to break it" — replay attack.
+     *
+     * Takes the exact ciphertext of the most recently SETTLED payment and
+     * resubmits it through the real production ingestion pipeline, exactly
+     * as a malicious bridge node holding an old packet would. This is not a
+     * simulated outcome — bridge.ingest(...) is the same method the real
+     * /api/bridge/ingest endpoint calls.
+     *
+     * Expected result: DUPLICATE_DROPPED, because this ciphertext's hash was
+     * already claimed the moment the original payment settled.
+     */
+    @PostMapping("/attack/replay")
+    public Map<String, Object> attackReplay() {
+        Optional<Transaction> target = txRepo.findFirstByStatusOrderByIdDesc(Transaction.Status.SETTLED);
+        if (target.isEmpty()) {
+            return Map.of(
+                    "attack", "REPLAY",
+                    "possible", false,
+                    "message", "Send a payment first, then try to replay it."
+            );
+        }
+        Transaction original = target.get();
+
+        MeshPacket forged = new MeshPacket();
+        forged.setPacketId(UUID.randomUUID().toString()); // attacker mints a fresh outer id
+        forged.setTtl(5);
+        forged.setCreatedAt(System.currentTimeMillis());
+        forged.setCiphertext(original.getCiphertext()); // byte-for-byte copy of a real payment
+
+        BridgeIngestionService.IngestResult r = bridge.ingest(forged, "attacker-replay", 0);
+        boolean blocked = "DUPLICATE_DROPPED".equals(r.outcome());
+
+        return attackResponse("REPLAY", original, r, blocked,
+                blocked
+                        ? "The server recognized this exact ciphertext had already been settled and dropped the replay before it touched any balance."
+                        : "The replay was not blocked — this indicates a real gap in the idempotency check.");
+    }
+
+    /**
+     * "Try to break it" — tamper attack.
+     *
+     * Takes the exact ciphertext of the most recently SETTLED payment, flips
+     * a single byte deep inside its AES-GCM authentication tag, and submits
+     * it as a brand-new packet. Because the hash now differs, it passes the
+     * idempotency gate cleanly — the only thing left that can catch it is
+     * the cryptography itself.
+     *
+     * Expected result: INVALID / decryption_failed, because AES-GCM is
+     * authenticated encryption — any single-bit change anywhere in the
+     * ciphertext or its tag makes the tag check fail and decryption throws.
+     */
+    @PostMapping("/attack/tamper")
+    public Map<String, Object> attackTamper() {
+        Optional<Transaction> target = txRepo.findFirstByStatusOrderByIdDesc(Transaction.Status.SETTLED);
+        if (target.isEmpty()) {
+            return Map.of(
+                    "attack", "TAMPER",
+                    "possible", false,
+                    "message", "Send a payment first, then try to tamper with it."
+            );
+        }
+        Transaction original = target.get();
+
+        byte[] raw = Base64.getDecoder().decode(original.getCiphertext());
+        if (raw.length < 8) {
+            return Map.of(
+                    "attack", "TAMPER",
+                    "possible", false,
+                    "message", "That payment's ciphertext is too short to tamper with safely."
+            );
+        }
+        int flipIndex = raw.length - 3; // deep inside the AES-GCM tag, well clear of any bounds
+        raw[flipIndex] = (byte) (raw[flipIndex] ^ 0xFF);
+
+        MeshPacket forged = new MeshPacket();
+        forged.setPacketId(UUID.randomUUID().toString());
+        forged.setTtl(5);
+        forged.setCreatedAt(System.currentTimeMillis());
+        forged.setCiphertext(Base64.getEncoder().encodeToString(raw));
+
+        BridgeIngestionService.IngestResult r = bridge.ingest(forged, "attacker-tamper", 0);
+        boolean blocked = "INVALID".equals(r.outcome());
+
+        return attackResponse("TAMPER", original, r, blocked,
+                blocked
+                        ? "Flipping a single byte broke the AES-GCM authentication tag, so decryption threw before the forged packet could reach settlement."
+                        : "The tampered packet was not blocked — this indicates a real gap in the cryptographic check.");
+    }
+
+    private Map<String, Object> attackResponse(String attack, Transaction original,
+                                               BridgeIngestionService.IngestResult r,
+                                               boolean blocked, String explanation) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("attack", attack);
+        body.put("possible", true);
+        body.put("targetTransactionId", original.getId());
+        body.put("sender", original.getSenderVpa());
+        body.put("receiver", original.getReceiverVpa());
+        body.put("amount", original.getAmount());
+        body.put("outcome", r.outcome());
+        body.put("reason", r.reason() == null ? "" : r.reason());
+        body.put("blocked", blocked);
+        body.put("explanation", explanation);
+        return body;
+    }
 }
