@@ -33,7 +33,7 @@ public class SettlementService {
     @Autowired private TransactionRepository transactions;
 
     @Transactional
-    public Transaction settle(PaymentInstruction instruction, String packetHash,
+    public Transaction settle(PaymentInstruction instruction, String ciphertext, String packetHash,
                               String bridgeNodeId, int hopCount) {
 
         Account sender = accounts.findById(instruction.getSenderVpa())
@@ -52,7 +52,7 @@ public class SettlementService {
         if (sender.getBalance().compareTo(amount) < 0) {
             log.warn("Insufficient balance: {} has ₹{}, tried to send ₹{}",
                     sender.getVpa(), sender.getBalance(), amount);
-            return recordRejected(instruction, packetHash, bridgeNodeId, hopCount);
+            return recordRejected(instruction, ciphertext, packetHash, bridgeNodeId, hopCount);
         }
 
         sender.setBalance(sender.getBalance().subtract(amount));
@@ -70,6 +70,9 @@ public class SettlementService {
         tx.setBridgeNodeId(bridgeNodeId);
         tx.setHopCount(hopCount);
         tx.setStatus(Transaction.Status.SETTLED);
+        tx.setCiphertext(ciphertext);
+        tx.setNonce(instruction.getNonce());
+        tx.setPinHash(instruction.getPinHash());
         transactions.save(tx);
 
         log.info("SETTLED ₹{} from {} to {} (packetHash={}, bridge={}, hops={})",
@@ -79,7 +82,7 @@ public class SettlementService {
         return tx;
     }
 
-    private Transaction recordRejected(PaymentInstruction instruction, String packetHash,
+    private Transaction recordRejected(PaymentInstruction instruction, String ciphertext, String packetHash,
                                        String bridgeNodeId, int hopCount) {
         Transaction tx = new Transaction();
         tx.setPacketHash(packetHash);
@@ -91,6 +94,9 @@ public class SettlementService {
         tx.setBridgeNodeId(bridgeNodeId);
         tx.setHopCount(hopCount);
         tx.setStatus(Transaction.Status.REJECTED);
+        tx.setCiphertext(ciphertext);
+        tx.setNonce(instruction.getNonce());
+        tx.setPinHash(instruction.getPinHash());
         return transactions.save(tx);
     }
 }

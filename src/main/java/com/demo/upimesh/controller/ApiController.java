@@ -173,4 +173,37 @@ public class ApiController {
     public List<Transaction> listTransactions() {
         return txRepo.findTop20ByOrderByIdDesc();
     }
+
+    /**
+     * Powers the "show what the encryption is doing" dashboard panel.
+     * Returns the exact same ciphertext a stranger holding this packet would
+     * see, alongside the plaintext fields the bank recovered by decrypting it.
+     * Purely a read of data already persisted at settlement time — this does
+     * NOT re-run or touch the decryption pipeline.
+     */
+    @GetMapping("/transactions/{id}/inspect")
+    public ResponseEntity<?> inspectTransaction(@PathVariable Long id) {
+        return txRepo.findById(id)
+                .<ResponseEntity<?>>map(tx -> {
+                    String ciphertext = tx.getCiphertext() == null ? "" : tx.getCiphertext();
+                    int byteLength = ciphertext.isEmpty() ? 0 : Base64.getDecoder().decode(ciphertext).length;
+                    return ResponseEntity.ok(Map.of(
+                            "transactionId", tx.getId(),
+                            "status", tx.getStatus(),
+                            "packetHash", tx.getPacketHash(),
+                            "stranger", Map.of(
+                                    "ciphertextBase64", ciphertext,
+                                    "byteLength", byteLength
+                            ),
+                            "bank", Map.of(
+                                    "senderVpa", tx.getSenderVpa(),
+                                    "receiverVpa", tx.getReceiverVpa(),
+                                    "amount", tx.getAmount(),
+                                    "nonce", tx.getNonce() == null ? "" : tx.getNonce(),
+                                    "signedAt", tx.getSignedAt()
+                            )
+                    ));
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }

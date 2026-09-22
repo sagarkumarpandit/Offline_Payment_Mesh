@@ -69,7 +69,7 @@ public class BridgeIngestionService {
             }
 
             // ---- Settle ----
-            Transaction tx = settlement.settle(instruction, packetHash, bridgeNodeId, hopCount);
+            Transaction tx = settlement.settle(instruction, packet.getCiphertext(), packetHash, bridgeNodeId, hopCount);
             return IngestResult.settled(packetHash, tx);
 
         } catch (Exception e) {

@@ -6,7 +6,7 @@
     <title>UPI Offline Mesh</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #000000;
@@ -53,6 +53,7 @@
 
         .shell { max-width: 1160px; margin: 0 auto; padding: 0 24px 72px; }
 
+        /* ---------- top bar ---------- */
 
         .topbar {
             position: sticky; top: 0; z-index: 20;
@@ -81,6 +82,7 @@
         }
         .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex: none; }
 
+        /* ---------- page head ---------- */
 
         .pagehead { padding: 44px 0 28px; }
         .pagehead h1 {
@@ -89,6 +91,7 @@
         }
         .pagehead p { margin: 0; color: var(--text-dim); max-width: 62ch; }
 
+        /* ---------- stats ---------- */
 
         .stats {
             display: grid; grid-template-columns: repeat(4, 1fr);
@@ -104,6 +107,7 @@
         }
         .stat .value small { font-size: 13px; font-weight: 500; color: var(--text-faint); margin-left: 4px; }
 
+        /* ---------- panels ---------- */
 
         .panel {
             background: var(--surface); border: 1px solid var(--line);
@@ -124,6 +128,7 @@
 
         .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 
+        /* ---------- form ---------- */
 
         .fields {
             display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -156,6 +161,7 @@
         }
         .amount-wrap input { padding-left: 24px; font-variant-numeric: tabular-nums; }
 
+        /* ---------- buttons ---------- */
 
         .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
@@ -189,7 +195,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-
+        /* ---------- devices ---------- */
 
         .device {
             display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -216,6 +222,7 @@
             padding: 2px 7px; border-radius: 4px;
         }
 
+        /* ---------- tables ---------- */
 
         table { width: 100%; border-collapse: collapse; }
         th, td { text-align: left; padding: 11px 18px; border-bottom: 1px solid var(--line); }
@@ -239,6 +246,7 @@
 
         .empty { padding: 34px 18px; text-align: center; color: var(--text-faint); font-size: 13px; }
 
+        /* ---------- duplicate storm result ---------- */
 
         .storm-summary {
             display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
@@ -258,6 +266,81 @@
         .storm-row .why { color: var(--text-faint); font-size: 12px; }
         .storm-placeholder { color: var(--text-faint); font-size: 13px; }
 
+        /* ---------- encryption inspector ---------- */
+
+        .btn-inspect {
+            padding: 5px 10px; font-size: 12px;
+            background: transparent; border-color: rgba(99,91,255,.4); color: #9d97ff;
+        }
+        .btn-inspect:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); }
+
+        .modal-backdrop {
+            position: fixed; inset: 0; z-index: 100;
+            background: rgba(0,0,0,.72); backdrop-filter: blur(2px);
+            display: flex; align-items: flex-start; justify-content: center;
+            padding: 5vh 16px; overflow-y: auto;
+        }
+        .modal-backdrop.hidden { display: none; }
+        .modal {
+            width: 100%; max-width: 860px;
+            background: var(--surface); border: 1px solid var(--line-strong);
+            border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,.6);
+            overflow: hidden;
+        }
+        .modal-head {
+            padding: 16px 20px; border-bottom: 1px solid var(--line);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .modal-head h3 { margin: 0; font-size: 15px; font-weight: 600; }
+        .modal-head .modal-sub { color: var(--text-faint); font-size: 12.5px; margin-top: 2px; }
+        .modal-head .spacer { flex: 1; }
+        .modal-close {
+            width: 28px; height: 28px; padding: 0; justify-content: center;
+            background: transparent; border-color: var(--line-strong); font-size: 16px; line-height: 1;
+        }
+        .modal-body { padding: 20px; }
+        .inspect-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+        }
+        .inspect-card {
+            border: 1px solid var(--line); border-radius: var(--radius-sm);
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+        .inspect-card .ic-head {
+            padding: 11px 14px; font-size: 12.5px; font-weight: 600;
+            display: flex; align-items: center; gap: 7px;
+        }
+        .inspect-card.stranger .ic-head { background: var(--red-soft); color: var(--red); }
+        .inspect-card.bank .ic-head { background: var(--green-soft); color: var(--green); }
+        .inspect-card .ic-sub {
+            padding: 0 14px 11px; margin-top: -6px; font-size: 11.5px; color: var(--text-faint);
+        }
+        .inspect-card .ic-body { padding: 14px; flex: 1; }
+        .cipher-block {
+            font-family: var(--mono); font-size: 11px; line-height: 1.6; color: var(--text-dim);
+            background: #050507; border: 1px solid var(--line); border-radius: var(--radius-sm);
+            padding: 10px; word-break: break-all; max-height: 220px; overflow-y: auto;
+        }
+        .cipher-meta { margin-top: 8px; font-size: 11.5px; color: var(--text-faint); }
+        .kv-list { display: flex; flex-direction: column; gap: 9px; }
+        .kv-row { display: flex; align-items: baseline; gap: 10px; }
+        .kv-row .k { flex: none; width: 84px; color: var(--text-faint); font-size: 11.5px; }
+        .kv-row .v { font-family: var(--mono); font-size: 12.5px; word-break: break-all; }
+        .kv-row .v.amount { font-family: var(--sans); font-weight: 600; color: var(--green); font-size: 14px; }
+        .inspect-footnote {
+            margin-top: 16px; padding: 11px 14px; border-radius: var(--radius-sm);
+            background: var(--surface-2); border: 1px solid var(--line);
+            font-size: 12px; color: var(--text-dim); line-height: 1.55;
+        }
+        .modal-loading, .modal-error {
+            padding: 40px 20px; text-align: center; color: var(--text-faint); font-size: 13px;
+        }
+        .modal-error { color: var(--red); }
+        @media (max-width: 700px) {
+            .inspect-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ---------- log ---------- */
 
         #log {
             font-family: var(--mono); font-size: 12px; line-height: 1.75;
@@ -440,7 +523,7 @@
                     <th>ID</th><th>From</th><th>To</th>
                     <th style="text-align:right">Amount</th>
                     <th>Status</th><th>Delivered by</th>
-                    <th style="text-align:right">Hops</th><th>Settled</th>
+                    <th style="text-align:right">Hops</th><th>Settled</th><th>Encryption</th>
                 </tr>
                 </thead>
                 <tbody></tbody>
@@ -459,6 +542,22 @@
         </div>
     </div>
 
+</div>
+
+<div class="modal-backdrop hidden" id="inspectBackdrop">
+    <div class="modal">
+        <div class="modal-head">
+            <div>
+                <h3>What the encryption actually hides</h3>
+                <div class="modal-sub" id="inspectSub">&nbsp;</div>
+            </div>
+            <span class="spacer"></span>
+            <button class="modal-close" id="inspectClose" type="button" aria-label="Close">✕</button>
+        </div>
+        <div class="modal-body" id="inspectBody">
+            <div class="modal-loading">Loading…</div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -507,6 +606,7 @@
         });
     }
 
+    // ---------------------------------------------------------------- render
 
     function renderDevices(state) {
         var wrap = document.getElementById('devices');
@@ -556,7 +656,7 @@
     function renderTransactions(txs) {
         var body = document.querySelector('#tx-table tbody');
         if (!txs.length) {
-            body.innerHTML = '<tr><td colspan="8" class="empty">No payments yet. Send one to get started.</td></tr>';
+            body.innerHTML = '<tr><td colspan="9" class="empty">No payments yet. Send one to get started.</td></tr>';
             document.getElementById('statVolume').textContent = '₹0.00';
             document.getElementById('statSettled').textContent = '0';
             return;
@@ -587,6 +687,7 @@
                 '<td class="mono">' + esc(t.bridgeNodeId) + '</td>' +
                 '<td class="num" style="text-align:right">' + esc(t.hopCount) + '</td>' +
                 '<td class="muted">' + esc(when) + '</td>' +
+                '<td><button class="quiet btn-inspect" type="button" data-tx-id="' + esc(t.id) + '">Inspect</button></td>' +
             '</tr>';
         }).join('');
     }
@@ -611,6 +712,7 @@
         });
     }
 
+    // --------------------------------------------------------------- actions
 
     document.getElementById('btnSend').addEventListener('click', function () {
         var btn = this;
@@ -690,6 +792,7 @@
         }).then(function () { busy(btn, false); });
     });
 
+    // -------------------------------------------------------- duplicate storm
 
     function renderStorm(sendResp, flushResp, amount, sender, receiver) {
         var box = document.getElementById('stormResult');
@@ -791,6 +894,84 @@
         logEl.innerHTML = '';
     });
 
+    // ------------------------------------------------------ encryption inspector
+
+    var inspectBackdrop = document.getElementById('inspectBackdrop');
+    var inspectBody = document.getElementById('inspectBody');
+    var inspectSub = document.getElementById('inspectSub');
+
+    function formatWhen(epochMillis) {
+        if (!epochMillis) return '—';
+        return new Date(epochMillis).toLocaleString();
+    }
+
+    function renderInspect(data) {
+        var s = data.stranger, b = data.bank;
+        inspectSub.textContent = 'Transaction #' + data.transactionId + ' · ' + data.status;
+
+        inspectBody.innerHTML =
+            '<div class="inspect-grid">' +
+                '<div class="inspect-card stranger">' +
+                    '<div class="ic-head">What a stranger\'s phone sees</div>' +
+                    '<div class="ic-sub">Same bytes it gossiped over Bluetooth. No idea what\'s inside.</div>' +
+                    '<div class="ic-body">' +
+                        '<div class="cipher-block">' + esc(s.ciphertextBase64 || '(empty)') + '</div>' +
+                        '<div class="cipher-meta">' + s.byteLength + ' bytes · RSA-2048 key wrap + AES-256-GCM</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="inspect-card bank">' +
+                    '<div class="ic-head">What the bank sees after decrypting</div>' +
+                    '<div class="ic-sub">Same blob, opened with the server\'s private key.</div>' +
+                    '<div class="ic-body">' +
+                        '<div class="kv-list">' +
+                            '<div class="kv-row"><span class="k">From</span><span class="v">' + esc(b.senderVpa) + '</span></div>' +
+                            '<div class="kv-row"><span class="k">To</span><span class="v">' + esc(b.receiverVpa) + '</span></div>' +
+                            '<div class="kv-row"><span class="k">Amount</span><span class="v amount">' + money(b.amount) + '</span></div>' +
+                            '<div class="kv-row"><span class="k">Nonce</span><span class="v">' + esc(b.nonce || '—') + '</span></div>' +
+                            '<div class="kv-row"><span class="k">Signed</span><span class="v">' + esc(formatWhen(b.signedAt)) + '</span></div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="inspect-footnote">Both cards came from the exact same packet — the stranger\'s copy and the bank\'s copy are ' +
+            'byte-for-byte identical. Only the server\'s private key can turn the left side into the right side. ' +
+            'Packet hash: <span class="mono">' + esc(data.packetHash) + '</span></div>';
+    }
+
+    function openInspect(txId) {
+        inspectBackdrop.classList.remove('hidden');
+        inspectSub.textContent = '';
+        inspectBody.innerHTML = '<div class="modal-loading">Decrypting…</div>';
+
+        jsonFetch('/api/transactions/' + encodeURIComponent(txId) + '/inspect')
+            .then(function (data) {
+                renderInspect(data);
+            })
+            .catch(function (e) {
+                inspectBody.innerHTML = '<div class="modal-error">Could not load this transaction — ' + esc(e.message) + '</div>';
+                log('Inspect failed: ' + e.message, 'err');
+            });
+    }
+
+    function closeInspect() {
+        inspectBackdrop.classList.add('hidden');
+    }
+
+    document.querySelector('#tx-table tbody').addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-inspect');
+        if (!btn) return;
+        openInspect(btn.getAttribute('data-tx-id'));
+    });
+
+    document.getElementById('inspectClose').addEventListener('click', closeInspect);
+    inspectBackdrop.addEventListener('click', function (e) {
+        if (e.target === inspectBackdrop) closeInspect();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !inspectBackdrop.classList.contains('hidden')) closeInspect();
+    });
+
+    // ----------------------------------------------------------------- start
 
     jsonFetch('/api/server-key').then(function (k) {
         document.getElementById('keyFingerprint').textContent =

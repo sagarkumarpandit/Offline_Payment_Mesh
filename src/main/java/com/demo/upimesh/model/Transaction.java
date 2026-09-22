@@ -47,6 +47,19 @@ public class Transaction {
     @Column(nullable = false)
     private Status status;
 
+    // --- Added for the "show the encryption" dashboard feature ---
+    // These are read-only, purely for display; nothing in the settlement
+    // or idempotency pipeline depends on them.
+
+    @Column(length = 8000)
+    private String ciphertext; // The exact base64 blob a stranger holding this packet would see
+
+    @Column(length = 64)
+    private String nonce; // From the decrypted PaymentInstruction
+
+    @Column(length = 64)
+    private String pinHash; // SHA-256 of the PIN, already hashed on the sender's phone
+
     public enum Status { SETTLED, REJECTED }
 
     public Transaction() {}
@@ -80,4 +93,13 @@ public class Transaction {
 
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }
+
+    public String getCiphertext() { return ciphertext; }
+    public void setCiphertext(String ciphertext) { this.ciphertext = ciphertext; }
+
+    public String getNonce() { return nonce; }
+    public void setNonce(String nonce) { this.nonce = nonce; }
+
+    public String getPinHash() { return pinHash; }
+    public void setPinHash(String pinHash) { this.pinHash = pinHash; }
 }
